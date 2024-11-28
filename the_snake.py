@@ -109,10 +109,6 @@ class Snake(GameObject):
         )
 
         """Обработка столкновения с границами."""
-        if new_head[1] >= SCREEN_HEIGHT:
-            new_head = (new_head[0], 0)
-        elif new_head[1] < 0:
-            new_head = (new_head[0], SCREEN_HEIGHT - GRID_SIZE)
 
         self.positions.insert(0, new_head)
         if len(self.positions) > self.length:
@@ -180,6 +176,8 @@ def main():
         head_x, head_y = snake.get_head_position()
         if head_x < 0 or head_x >= SCREEN_WIDTH or head_y < 0 or head_y >= SCREEN_HEIGHT:
             snake.reset()
+        apple.draw()  
+        snake.draw()
 
         pg.display.update()
 
