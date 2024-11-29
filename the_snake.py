@@ -42,18 +42,18 @@ clock = pg.time.Clock()
 class GameObject:
     """Базовый класс для всех игровых объектов."""
 
-    default_position = (0, 0)
-    default_body_color = (255, 255, 255)
+    position = (0, 0)
+    body_color = (255, 255, 255)
 
     def __init__(self, position=None, color=None):
         if position is None:
-            position = self.default_position
+            position = self.position
         if color is None:
-            color = self.default_body_color
-        
+            color = self.body_color
+
     def draw(self):
         """Метод для отрисовки объекта на игровом поле."""
-        raise NotImplementedError("Метод 'draw' должен быть реализован в подклассе.")
+        raise NotImplementedError("Метод 'draw' реализован в подклассе.")
 
 
 class Apple(GameObject):
@@ -61,7 +61,8 @@ class Apple(GameObject):
 
     APPLE_COLOR = (255, 0, 0)
 
-    def __init__(self):
+    def __init__(self, snake=None):
+        self.snake = snake if snake else Snake()
         self.position = self.randomize_position()
         super().__init__(self.position, self.APPLE_COLOR)
 
@@ -78,10 +79,15 @@ class Apple(GameObject):
 
     def randomize_position(self):
         """Обновляет позицию яблока."""
-        return (
-            randint(0, GRID_WIDTH - 1) * GRID_SIZE,
-            randint(0, GRID_HEIGHT - 1) * GRID_SIZE,
+        while True:
+            position = (
+                randint(0, GRID_WIDTH - 1) * GRID_SIZE,
+                randint(0, GRID_HEIGHT - 1) * GRID_SIZE,
             )
+            if position not in self.snake.positions:
+                return position
+            return self.randomize_position()
+
 
 class Snake(GameObject):
     """Класс для Змейки."""
@@ -152,8 +158,8 @@ def handle_keys(game_object):
 def main():
     """Основная функция игры."""
     pg.init()
-    apple = Apple()
     snake = Snake()
+    apple = Apple(snake)
 
     while True:
         clock.tick(SPEED)
@@ -174,9 +180,12 @@ def main():
             snake.reset()
         """Проверка на столкновение с границами."""
         head_x, head_y = snake.get_head_position()
-        if head_x < 0 or head_x >= SCREEN_WIDTH or head_y < 0 or head_y >= SCREEN_HEIGHT:
+        if (
+            head_x < 0 or head_x >= SCREEN_WIDTH
+            or head_y < 0 or head_y >= SCREEN_HEIGHT
+        ):
             snake.reset()
-        apple.draw()  
+        apple.draw()
         snake.draw()
 
         pg.display.update()
