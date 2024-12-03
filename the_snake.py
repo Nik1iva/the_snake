@@ -26,6 +26,9 @@ APPLE_COLOR = (255, 0, 0)
 # Цвет змейки
 SNAKE_COLOR = (0, 255, 0)
 
+# Начальная позиция змейки
+DEFAULT_POSITION = (0, 0)
+
 # Скорость движения змейки:
 SPEED = 10
 
@@ -42,14 +45,9 @@ clock = pg.time.Clock()
 class GameObject:
     """Базовый класс для всех игровых объектов."""
 
-    position = (0, 0)
-    body_color = (255, 255, 255)
-
-    def __init__(self, position=(0, 0), color=(255, 255, 255)):
-        if position is None:
-            self.position = position
-        if color is None:
-            self.body_color = color
+    def __init__(self, position=DEFAULT_POSITION, color=APPLE_COLOR):
+        self.position = position
+        self.body_color = color
 
     def draw(self):
         """Метод для отрисовки объекта на игровом поле."""
@@ -59,8 +57,8 @@ class GameObject:
 class Apple(GameObject):
     """Реализвция класса для Яблока"""
 
-    def __init__(self):
-        self.position = self.randomize_position()
+    def __init__(self, snake_positions=(0,0)):
+        self.position = self.randomize_position(snake_positions)
         super().__init__(self.position)
 
     def draw(self):
@@ -72,16 +70,14 @@ class Apple(GameObject):
         pg.draw.rect(screen, APPLE_COLOR, rect)
         pg.draw.rect(screen, BORDER_COLOR, rect, 1)
 
-    def randomize_position(self):
+    def randomize_position(self, snake_positions):
         """Обновляет позицию яблока."""
-        return (
+        position = (
             randint(0, GRID_WIDTH - 1) * GRID_SIZE,
             randint(0, GRID_HEIGHT - 1) * GRID_SIZE,
         )
-
-    def check_collision(self, snake_positions):
-        """Проверяет столкновение с змейкой."""
-        return self.position in snake_positions
+        if position not in snake_positions:
+            return position
 
 
 class Snake(GameObject):
@@ -89,9 +85,7 @@ class Snake(GameObject):
 
     def __init__(self):
         self.body_color = SNAKE_COLOR
-        self.positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
-        self.length = 1
-        self.direction = RIGHT
+        self.reset()
         self.next_direction = None
         super().__init__(
             position=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2),
@@ -111,8 +105,6 @@ class Snake(GameObject):
             (head_x + self.direction[0] * GRID_SIZE) % SCREEN_WIDTH,
             (head_y + self.direction[1] * GRID_SIZE) % SCREEN_HEIGHT
         )
-
-        """Обработка столкновения с границами."""
 
         self.positions.insert(0, new_head)
         if len(self.positions) > self.length:
@@ -157,7 +149,7 @@ def main():
     """Основная функция игры."""
     pg.init()
     snake = Snake()
-    apple = Apple()
+    apple = Apple(snake.positions)
 
     while True:
         clock.tick(SPEED)
@@ -176,13 +168,7 @@ def main():
         # Проверка на столкновение в свое тело.
         if snake.get_head_position() in snake.positions[1:]:
             snake.reset()
-        # Проверка на столкновение с границами
-        head_x, head_y = snake.get_head_position()
-        if (
-            head_x < 0 or head_x >= SCREEN_WIDTH
-            or head_y < 0 or head_y >= SCREEN_HEIGHT
-        ):
-            snake.reset()
+
         apple.draw()
         snake.draw()
 
