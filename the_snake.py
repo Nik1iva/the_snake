@@ -57,7 +57,7 @@ class GameObject:
 class Apple(GameObject):
     """Реализвция класса для Яблока"""
 
-    def __init__(self, snake_positions=(0,0)):
+    def __init__(self, snake_positions=(0, 0)):
         self.position = self.randomize_position(snake_positions)
         super().__init__(self.position)
 
